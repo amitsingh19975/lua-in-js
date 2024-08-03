@@ -35,6 +35,5 @@ module.exports = {
     ],
     rules: {
         'prettier/prettier': 'warn'
-    },
-    ignores: ['vendor']
+    }
 }
