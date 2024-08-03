@@ -1,0 +1,3 @@
+[submodule "src/vendor/luaparse"]
+	path = src/vendor/luaparse
+	url = git@github.com:amitsingh19975/luaparse.git
