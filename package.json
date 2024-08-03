@@ -48,8 +48,8 @@
         "rollup": "^1.27.3",
         "rollup-plugin-commonjs": "^10.1.0",
         "rollup-plugin-node-resolve": "^5.2.0",
-        "rollup-plugin-typescript2": "^0.25.2",
+        "rollup-plugin-typescript2": "^0.25.3",
         "tslib": "^2.6.3",
-        "typescript": "^3.7.2"
+        "typescript": "^3.9.10"
     }
 }
