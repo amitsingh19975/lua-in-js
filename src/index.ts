@@ -55,7 +55,7 @@ function createEnv(
 ): {
     parse: (script: string) => Script
     parseFile: (path: string) => Script
-    loadLib: (name: string, value: Table) => void
+    loadLib: (name: string, value: Table) => void,
 } {
     const cfg: Config = {
         LUA_PATH: './?.lua',
@@ -85,6 +85,13 @@ function createEnv(
     loadLib('os', getLibOS(cfg))
 
     _G.rawset('require', _require)
+
+    const { 
+        fields = () => undefined,
+        outputs = () => undefined
+    } = config;
+    _G.rawset('$', fields);
+    _G.rawset('$$', outputs);
 
     const parse = (code: string): Script => {
         const script = parseScript(code)

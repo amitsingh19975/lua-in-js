@@ -9,7 +9,9 @@ interface Config {
     loadFile?: (path: string) => string
     stdin?: string
     stdout?: (data: string) => void
-    osExit?: (code: number) => void
+    osExit?: (code: number) => void,
+    fields?: (...args: any[]) => LuaType,
+    outputs?: (...args: any[]) => LuaType,
 }
 
 /** Pattern to identify a float string value that can validly be converted to a number in Lua */
