@@ -53,7 +53,7 @@ const execChunk = (_G: Table, chunk: string, chunkName?: string): LuaType[] => {
 function createEnv(
     config: Config = {}
 ): {
-    parse: (script: string) => Script
+    parse: (script: string | Chunk) => Script
     parseFile: (path: string) => Script
     loadLib: (name: string, value: Table) => void,
 } {
@@ -118,4 +118,5 @@ function createEnv(
 
 // eslint-disable-next-line import/first
 import * as utils from './utils'
+import { Chunk } from 'luaparse'
 export { createEnv, Table, LuaError, utils }
