@@ -124,4 +124,5 @@ function createEnv(
 
 // eslint-disable-next-line import/first
 import * as utils from './utils'
-export { createEnv, Table, LuaError, utils }
+import * as luaparse from 'luaparse';
+export { createEnv, Table, LuaError, utils, luaparse }
