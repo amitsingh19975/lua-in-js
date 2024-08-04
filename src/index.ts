@@ -11,7 +11,7 @@ import { libString, metatable as stringMetatable } from './lib/string'
 import { getLibOS } from './lib/os'
 import { getLibPackage } from './lib/package'
 import { LuaType, ensureArray, Config } from './utils'
-import { parse as parseScript } from './parser'
+import { parse as parseScript, parseChunk } from './parser'
 
 interface Script {
     exec: () => LuaType
@@ -48,6 +48,12 @@ const execChunk = (_G: Table, chunk: string, chunkName?: string): LuaType[] => {
         get
     })
     return res === undefined ? [undefined] : res
+}
+
+type Chunk = ReturnType<typeof parseChunk>;
+
+export function lexSource(source: string): Chunk {
+    return parseChunk(source);
 }
 
 function createEnv(
@@ -118,5 +124,4 @@ function createEnv(
 
 // eslint-disable-next-line import/first
 import * as utils from './utils'
-import { Chunk } from 'luaparse'
 export { createEnv, Table, LuaError, utils }

@@ -1,5 +1,4 @@
 import * as luaparse from 'luaparse'
-import type { Chunk } from 'luaparse';
 
 type Block =
     | luaparse.IfClause
@@ -740,16 +739,20 @@ const setExtraInfo = (ast: luaparse.Chunk): void => {
     visitProp(ast, scopeID, gotoID)
 }
 
-const parse = (data: string | Chunk): string => {
-    const ast = typeof data === 'string' ? luaparse.parse(data.replace(/^#.*/, ''), {
+function parseChunk(data: string): luaparse.Chunk {
+    return luaparse.parse(data.replace(/^#.*/, ''), {
         scope: false,
         comments: false,
         luaVersion: '5.3',
         encodingMode: 'x-user-defined'
-    }) : data
+    })
+}
+
+const parse = (data: string | luaparse.Chunk): string => {
+    const ast = typeof data === 'string' ? parseChunk(data)  : data
     checkGoto(ast)
     setExtraInfo(ast)
     return generate(ast).toString()
 }
 
-export { parse }
+export { parse, parseChunk }
