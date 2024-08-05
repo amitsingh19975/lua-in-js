@@ -93,11 +93,9 @@ function createEnv(
     _G.rawset('require', _require)
 
     const { 
-        fields = () => undefined,
-        outputs = () => undefined
+        setGlobalVars = () => void 0
     } = config;
-    _G.rawset('$', fields);
-    _G.rawset('$$', outputs);
+    setGlobalVars(_G);
 
     const parse = (code: string): Script => {
         const script = parseScript(code)
