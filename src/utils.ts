@@ -9,7 +9,7 @@ interface Config {
     loadFile?: (path: string) => string
     stdin?: string
     stdout?: (data: string) => void
-    osExit?: (code: number) => void,
+    osExit?: (code: number) => void
     setGlobalVars?: (table: Table) => void
 }
 

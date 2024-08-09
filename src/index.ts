@@ -13,27 +13,31 @@ import { getLibPackage } from './lib/package'
 import { LuaType, ensureArray, Config } from './utils'
 import { parse as parseScript, parseChunk } from './parser'
 
+// eslint-disable-next-line import/first
+import * as utils from './utils'
+import * as luaparse from 'luaparse'
+
 interface Script {
     exec: () => LuaType
 }
 
-const call = (f: Function | Table, ...args: LuaType[]): LuaType[] => {
+const call = (f: Function | Table, lineNumber?: number, ...args: LuaType[]): LuaType[] => {
     if (f instanceof Function) return ensureArray(f(...args))
 
     const mm = f instanceof Table && f.getMetaMethod('__call')
     if (mm) return ensureArray(mm(f, ...args))
 
-    throw new LuaError(`attempt to call an uncallable type`)
+    throw new LuaError(`attempt to call an uncallable type`, lineNumber)
 }
 
 const stringTable = new Table()
 stringTable.metatable = stringMetatable
 
-const get = (t: Table | string, v: LuaType): LuaType => {
+const get = (t: Table | string, v: LuaType, lineNumber?: number): LuaType => {
     if (t instanceof Table) return t.get(v)
     if (typeof t === 'string') return stringTable.get(v)
 
-    throw new LuaError(`no table or metatable found for given type`)
+    throw new LuaError(`no table or metatable found for given type`, lineNumber)
 }
 
 const execChunk = (_G: Table, chunk: string, chunkName?: string): LuaType[] => {
@@ -50,18 +54,18 @@ const execChunk = (_G: Table, chunk: string, chunkName?: string): LuaType[] => {
     return res === undefined ? [undefined] : res
 }
 
-type Chunk = ReturnType<typeof parseChunk>;
+type Chunk = ReturnType<typeof parseChunk>
 
-export function lexSource(source: string): Chunk {
-    return parseChunk(source);
+function lexSource(source: string): Chunk {
+    return parseChunk(source)
 }
 
 function createEnv(
     config: Config = {}
 ): {
-    parse: (script: string | Chunk) => Script
+    parse: (script: string | Chunk, locations?: boolean) => Script
     parseFile: (path: string) => Script
-    loadLib: (name: string, value: Table) => void,
+    loadLib: (name: string, value: Table) => void
 } {
     const cfg: Config = {
         LUA_PATH: './?.lua',
@@ -92,13 +96,11 @@ function createEnv(
 
     _G.rawset('require', _require)
 
-    const { 
-        setGlobalVars = () => void 0
-    } = config;
-    setGlobalVars(_G);
+    const { setGlobalVars = () => undefined } = config
+    setGlobalVars(_G)
 
-    const parse = (code: string): Script => {
-        const script = parseScript(code)
+    const parse = (code: string, locations?: boolean): Script => {
+        const script = parseScript(code, locations)
         return {
             exec: () => execChunk(_G, script)[0]
         }
@@ -119,8 +121,4 @@ function createEnv(
         loadLib
     }
 }
-
-// eslint-disable-next-line import/first
-import * as utils from './utils'
-import * as luaparse from 'luaparse';
-export { createEnv, Table, LuaError, utils, luaparse }
+export { createEnv, Table, LuaError, lexSource, utils, luaparse }

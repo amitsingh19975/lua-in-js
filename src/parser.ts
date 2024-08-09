@@ -28,14 +28,14 @@ class MemExpr extends String {
     public base: string | MemExpr
     public property: string | MemExpr
 
-    public constructor(base: string | MemExpr, property: string | MemExpr) {
+    public constructor(base: string | MemExpr, property: string | MemExpr, private lineNumber: number | undefined) {
         super()
         this.base = base
         this.property = property
     }
 
     public get(): string {
-        return `__lua.get(${this.base}, ${this.property})`
+        return `__lua.get(${this.base}, ${this.property}, ${this.lineNumber})`
     }
 
     public set(value: string | MemExpr): string {
@@ -207,7 +207,7 @@ const generate = (node: luaparse.Node): string | MemExpr => {
 
             const body = parseBody(node, variables)
 
-            return `for (let [iterator, table, next] = ${iterators}, res = __lua.call(iterator, table, next); res[0] !== undefined; res = __lua.call(iterator, table, res[0])) {\n${body}\n}`
+            return `for (let [iterator, table, next] = ${iterators}, res = __lua.call(iterator, ${node.loc.start.line}, table, next); res[0] !== undefined; res = __lua.call(iterator, ${node.loc.start.line}, table, res[0])) {\n${body}\n}`
         }
 
         case 'Chunk': {
@@ -312,13 +312,13 @@ const generate = (node: luaparse.Node): string | MemExpr => {
         }
         case 'MemberExpression': {
             const base = expression(node.base)
-            return new MemExpr(base, `'${node.identifier.name}'`)
+            return new MemExpr(base, `'${node.identifier.name}'`, node.loc.start.line)
         }
 
         case 'IndexExpression': {
             const base = expression(node.base)
             const index = expression(node.index)
-            return new MemExpr(base, index)
+            return new MemExpr(base, index, node.loc.start.line)
         }
 
         case 'CallExpression':
@@ -331,10 +331,10 @@ const generate = (node: luaparse.Node): string | MemExpr => {
                     : expression(node.type === 'TableCallExpression' ? node.arguments : node.argument)
 
             if (functionName instanceof MemExpr && node.base.type === 'MemberExpression' && node.base.indexer === ':') {
-                return `__lua.call(${functionName}, ${functionName.base}, ${args})`
+                return `__lua.call(${functionName},${node.loc.start.line}, ${functionName.base}, ${args})`
             }
 
-            return `__lua.call(${functionName}, ${args})`
+            return `__lua.call(${functionName}, ${node.loc.start.line}, ${args})`
         }
 
         default:
@@ -739,17 +739,18 @@ const setExtraInfo = (ast: luaparse.Chunk): void => {
     visitProp(ast, scopeID, gotoID)
 }
 
-function parseChunk(data: string): luaparse.Chunk {
+function parseChunk(data: string, locations?: boolean): luaparse.Chunk {
     return luaparse.parse(data.replace(/^#.*/, ''), {
         scope: false,
         comments: false,
         luaVersion: '5.3',
-        encodingMode: 'x-user-defined'
+        encodingMode: 'x-user-defined',
+        locations
     })
 }
 
-const parse = (data: string | luaparse.Chunk): string => {
-    const ast = typeof data === 'string' ? parseChunk(data)  : data
+const parse = (data: string | luaparse.Chunk, locations?: boolean): string => {
+    const ast = typeof data === 'string' ? parseChunk(data, locations) : data
     checkGoto(ast)
     setExtraInfo(ast)
     return generate(ast).toString()
