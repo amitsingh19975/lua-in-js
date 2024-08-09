@@ -207,7 +207,7 @@ const generate = (node: luaparse.Node): string | MemExpr => {
 
             const body = parseBody(node, variables)
 
-            return `for (let [iterator, table, next] = ${iterators}, res = __lua.call(iterator, ${node.loc.start.line}, table, next); res[0] !== undefined; res = __lua.call(iterator, ${node.loc.start.line}, table, res[0])) {\n${body}\n}`
+            return `for (let [iterator, table, next] = ${iterators}, res = __lua.call(iterator, ${node.loc?.start.line}, table, next); res[0] !== undefined; res = __lua.call(iterator, ${node.loc?.start.line}, table, res[0])) {\n${body}\n}`
         }
 
         case 'Chunk': {
@@ -312,13 +312,13 @@ const generate = (node: luaparse.Node): string | MemExpr => {
         }
         case 'MemberExpression': {
             const base = expression(node.base)
-            return new MemExpr(base, `'${node.identifier.name}'`, node.loc.start.line)
+            return new MemExpr(base, `'${node.identifier.name}'`, node.loc?.start.line)
         }
 
         case 'IndexExpression': {
             const base = expression(node.base)
             const index = expression(node.index)
-            return new MemExpr(base, index, node.loc.start.line)
+            return new MemExpr(base, index, node.loc?.start.line)
         }
 
         case 'CallExpression':
@@ -331,10 +331,10 @@ const generate = (node: luaparse.Node): string | MemExpr => {
                     : expression(node.type === 'TableCallExpression' ? node.arguments : node.argument)
 
             if (functionName instanceof MemExpr && node.base.type === 'MemberExpression' && node.base.indexer === ':') {
-                return `__lua.call(${functionName},${node.loc.start.line}, ${functionName.base}, ${args})`
+                return `__lua.call(${functionName},${node.loc?.start.line}, ${functionName.base}, ${args})`
             }
 
-            return `__lua.call(${functionName}, ${node.loc.start.line}, ${args})`
+            return `__lua.call(${functionName}, ${node.loc?.start.line}, ${args})`
         }
 
         default:
